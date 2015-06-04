@@ -484,15 +484,17 @@ public class Console {
             public void run() {
                 try {
                     while(read()) { }
+
+                    while(!inputQueue.isEmpty()) {
+                        try {
+                            Thread.sleep(100L);
+                        } catch (InterruptedException e) {
+                            // ignore
+                        }
+                    }
                 }
                 finally {
-                    try {
-                        doStop();
-                    }
-                    catch (IOException e) {
-                        e.printStackTrace();
-                    }
-
+                    stop();
                 }
             }
         };
@@ -542,8 +544,6 @@ public class Console {
             //close thread, exit
             if(input.length == 0 || input[0] == -1) {
                 //dont have to initiate it twice
-                if(!initiateStop)
-                    stop();
                 return false;
             }
 
@@ -582,16 +582,9 @@ public class Console {
             ioe.printStackTrace();
             if(settings.isLogging())
                 LOGGER.severe("Stream failure, stopping Aesh: "+ioe);
-            try {
-                //if we get an ioexception/interrupted exp its either input or output failure
-                //lets just stop while we can...
-                doStop();
-                return false;
-            }
-            catch (IOException ignored) {
-                ignored.printStackTrace();
-                return false;
-            }
+            //if we get an ioexception/interrupted exp its either input or output failure
+            //lets just stop while we can...
+            return false;
         }
         catch (InterruptedException e) {
             e.printStackTrace();
